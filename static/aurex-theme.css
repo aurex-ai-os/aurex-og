@@ -1,0 +1,2103 @@
+/* ============================================ */
+/* Aurex UI — Core Identity & Tokens            */
+/* ============================================ */
+
+/* 1. Aurex Design Tokens */
+:root {
+  /* Core Colors */
+  --aurex-bg: var(--bg, #0A0A0A); /* Deep, premium dark */
+  --aurex-surface: var(--panel, #141414); /* Elevated surface */
+  --aurex-surface-raised: color-mix(in srgb, var(--panel) 80%, white); /* Higher elevation */
+  --aurex-surface-hover: color-mix(in srgb, var(--panel) 60%, white);
+  
+  --aurex-border: var(--border, #2A2A2A);
+  --aurex-border-hover: color-mix(in srgb, var(--border) 70%, white);
+  
+  --aurex-text: var(--fg, #EDEDED);
+  --aurex-text-muted: color-mix(in srgb, var(--fg) 60%, transparent);
+  --aurex-text-subtle: color-mix(in srgb, var(--fg) 40%, transparent);
+  
+  /* Brand Accents */
+  --aurex-accent: var(--red, #337AFF); /* Deep technical blue */
+  --aurex-accent-soft: color-mix(in srgb, var(--red) 15%, transparent);
+  --aurex-accent-hover: color-mix(in srgb, var(--red) 85%, white);
+  
+  /* Semantic */
+  --aurex-success: #17B877;
+  --aurex-warning: #F5A623;
+  --aurex-danger: #E03E3E;
+  --aurex-info: #0070F3;
+  
+  /* Spacing Scale */
+  --aurex-space-xs: 0.25rem;
+  --aurex-space-sm: 0.5rem;
+  --aurex-space-md: 1rem;
+  --aurex-space-lg: 1.5rem;
+  --aurex-space-xl: 2rem;
+  
+  /* Radius System */
+  --aurex-radius-sm: 4px;
+  --aurex-radius-md: 8px;
+  --aurex-radius-lg: 12px;
+  --aurex-radius-full: 9999px;
+  
+  /* Typography - Moving away from pure monospace everywhere */
+  --aurex-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --aurex-font-mono: 'Fira Code', 'JetBrains Mono', monospace;
+  
+  /* Shadow / Elevation */
+  --aurex-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --aurex-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --aurex-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5), 0 4px 6px rgba(0, 0, 0, 0.2);
+  
+  
+}
+
+/* 2. Global Shell & Typography */
+body {
+  font-family: var(--aurex-font-sans);
+  background-color: var(--aurex-bg);
+  color: var(--aurex-text);
+  letter-spacing: -0.01em;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 3. Code blocks remain monospace */
+pre, code, .hljs {
+  font-family: var(--aurex-font-mono);
+  font-size: 0.9em;
+}
+
+/* 4. Scrollbars */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { 
+    background-color: var(--aurex-surface-hover); 
+    border-radius: var(--aurex-radius-full);
+    border: none;
+  }
+  ::-webkit-scrollbar-thumb:hover { background-color: var(--aurex-text-subtle); }
+}
+
+/* 5. Inputs & Buttons (Component Language) */
+button {
+  font-family: var(--aurex-font-sans);
+  border-radius: var(--aurex-radius-md);
+  transition: all 0.15s ease;
+}
+
+input, select, textarea {
+  font-family: var(--aurex-font-sans);
+  background: var(--aurex-surface-raised);
+  border: 1px solid var(--aurex-border);
+  border-radius: var(--aurex-radius-md);
+  color: var(--aurex-text);
+  padding: var(--aurex-space-sm) var(--aurex-space-md);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--aurex-accent);
+  box-shadow: 0 0 0 2px var(--aurex-accent-soft);
+  outline: none;
+}
+
+/* 6. Chat Surface Redesign */
+#chat-history {
+  background: var(--aurex-bg);
+  padding: var(--aurex-space-xl);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.message {
+  margin-bottom: var(--aurex-space-xl);
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.message.user {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.message.user .message-content {
+  background: var(--aurex-surface-raised);
+  padding: var(--aurex-space-md) var(--aurex-space-lg);
+  border-radius: var(--aurex-radius-lg);
+  border-bottom-right-radius: var(--aurex-radius-sm);
+  max-width: 80%;
+  border: 1px solid var(--aurex-border);
+}
+
+.message.agent {
+  display: flex;
+  flex-direction: column;
+  position: relative !important;
+}
+
+.message.agent .message-content {
+  padding-left: 0;
+}
+
+/* 7. Agent Activity / Tool Progress (Ghost Layer Foundation) */
+.tool-progress-container, .tool-result {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: var(--aurex-radius-md);
+  padding: var(--aurex-space-md);
+  margin-top: var(--aurex-space-sm);
+  margin-bottom: var(--aurex-space-sm);
+  font-family: var(--aurex-font-mono);
+  font-size: 0.85em;
+  color: var(--aurex-text-muted);
+  box-shadow: var(--aurex-shadow-sm);
+}
+
+.tool-progress-header {
+  display: flex;
+  align-items: center;
+  gap: var(--aurex-space-sm);
+  color: var(--aurex-text);
+  font-weight: 500;
+  font-family: var(--aurex-font-sans);
+}
+
+.tool-progress-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--aurex-accent-soft);
+  border-top-color: var(--aurex-accent);
+  border-radius: 50%;
+  animation: aurex-spin 1s linear infinite;
+}
+
+@keyframes aurex-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 8. Approval UI (Ghost Layer) */
+.aurex-approval-card {
+  background: var(--aurex-surface-raised);
+  border: 1px solid var(--aurex-warning);
+  border-left: 4px solid var(--aurex-warning);
+  border-radius: var(--aurex-radius-md);
+  padding: var(--aurex-space-lg);
+  margin: var(--aurex-space-md) 0;
+}
+
+.aurex-approval-header {
+  font-weight: 600;
+  color: var(--aurex-warning);
+  margin-bottom: var(--aurex-space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--aurex-space-sm);
+}
+
+/* 9. Sidebar / Navigation */
+#sidebar, .sidebar {
+  background-color: var(--aurex-surface);
+  border-right: 1px solid var(--aurex-border);
+  padding: var(--aurex-space-md);
+}
+
+.sidebar-header {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: var(--aurex-text-subtle);
+  margin-top: var(--aurex-space-lg);
+  margin-bottom: var(--aurex-space-sm);
+}
+
+.list-item {
+  padding: var(--aurex-space-sm) var(--aurex-space-md);
+  border-radius: var(--aurex-radius-md);
+  color: var(--aurex-text-muted);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--aurex-space-sm);
+  cursor: pointer;
+}
+
+.list-item:hover, .list-item.active {
+  background: var(--aurex-surface-hover);
+  color: var(--aurex-text);
+}
+
+/* 10. Modals */
+.modal-content, .modal-panel {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: var(--aurex-radius-lg);
+  box-shadow: var(--aurex-shadow-lg);
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--aurex-border);
+  padding: var(--aurex-space-lg);
+}
+
+.modal-body {
+  padding: var(--aurex-space-lg);
+}
+
+
+
+/* 11. Welcome Screen Logo Alignment */
+#welcome-screen .welcome-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.welcome-boat {
+  width: 2.4rem !important;
+  height: 2.4rem !important;
+  margin-right: 0 !important;
+  vertical-align: baseline !important;
+}
+
+/* 12. Sidebar Header Alignment */
+.sidebar-header {
+  justify-content: flex-start !important;
+  padding-left: 36px !important;
+  padding-top: 14px !important; 
+  margin-top: 0px !important;
+}
+
+/* 13. Floating Command Capsule (Phase A - Step 1) */
+.chat-container {
+  position: relative !important;
+}
+
+#chat-history {
+  padding-bottom: 140px !important; /* Space for the floating capsule to scroll over */
+}
+
+.chat-input-bar {
+  position: absolute !important;
+  bottom: 30px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 90% !important;
+  max-width: 760px !important;
+  border-radius: 28px !important;
+  
+  /* Radiant Neon Glow using the dynamic theme accent color */
+  box-shadow: 
+    0 20px 40px rgba(0,0,0,0.8),
+    0 0 15px color-mix(in srgb, var(--aurex-accent) 60%, transparent), 
+    0 0 45px color-mix(in srgb, var(--aurex-accent) 30%, transparent),
+    inset 0 0 10px color-mix(in srgb, var(--aurex-accent) 15%, transparent) !important;
+  
+  background: color-mix(in srgb, var(--aurex-surface-raised) 85%, transparent) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  
+  /* Glowing Border */
+  border: 1px solid color-mix(in srgb, var(--aurex-accent) 40%, transparent) !important;
+  border-top: 1px solid color-mix(in srgb, var(--aurex-accent) 80%, transparent) !important;
+  
+  z-index: 100 !important;
+  padding: 12px 16px !important;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.chat-input-bar:focus-within {
+  /* Intensify the Neon Glow when focused */
+  box-shadow: 
+    0 25px 50px rgba(0,0,0,0.9),
+    0 0 25px color-mix(in srgb, var(--aurex-accent) 80%, transparent), 
+    0 0 70px color-mix(in srgb, var(--aurex-accent) 50%, transparent),
+    0 0 100px color-mix(in srgb, var(--aurex-accent) 30%, transparent),
+    inset 0 0 15px color-mix(in srgb, var(--aurex-accent) 30%, transparent) !important;
+    
+  transform: translateY(-6px) !important;
+  background: color-mix(in srgb, var(--aurex-surface-raised) 95%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--aurex-accent) 80%, transparent) !important;
+  border-top: 1px solid var(--aurex-accent) !important;
+}
+
+/* Adjust textarea inside the new capsule */
+.chat-input-bar textarea {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 8px 4px !important;
+}
+
+/* 14. Welcome Screen Text Visibility */
+#welcome-screen .welcome-sub {
+  font-size: 1.1rem !important;
+  color: var(--aurex-text) !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+}
+
+#welcome-screen .welcome-tip {
+  font-size: 0.95rem !important;
+  color: var(--aurex-text) !important;
+  opacity: 0.85 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.03em !important;
+  margin-top: 16px !important;
+}
+
+/* 15. Nobody Mode Button Visibility */
+#welcome-screen .incognito-btn {
+  opacity: 0.75 !important;
+  color: var(--aurex-text) !important;
+  border-color: var(--aurex-border-hover) !important;
+  background: var(--aurex-surface-raised) !important;
+  font-weight: 500 !important;
+}
+
+#welcome-screen .incognito-btn:hover {
+  opacity: 1 !important;
+  background: var(--aurex-surface-hover) !important;
+}
+
+/* 16. Frameless Canvas & Glassmorphism (Phase A - Step 2) */
+body.bg-pattern-none,
+body.bg-pattern-solid {
+  /* Subtle ambient light only when no heavy pattern is active */
+  background: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--aurex-accent) 12%, var(--aurex-bg)), var(--aurex-bg) 50%), 
+              radial-gradient(circle at 90% 100%, color-mix(in srgb, var(--aurex-accent) 8%, var(--aurex-bg)), var(--aurex-bg) 50%) !important;
+  background-attachment: fixed !important;
+}
+
+body {
+  background-color: var(--aurex-bg);
+}
+
+#sidebar, .sidebar {
+  /* Remove hard rigid borders */
+  border-right: none !important;
+  
+  /* Glassmorphism base */
+  background: color-mix(in srgb, var(--aurex-bg) 60%, transparent) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  
+  /* Extremely subtle inner reflection for the glass edge */
+  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--aurex-text) 4%, transparent) !important;
+}
+
+/* Adjust sidebar items to blend with glass */
+.list-item:hover, .list-item.active {
+  background: color-mix(in srgb, var(--aurex-text) 8%, transparent) !important;
+}
+
+.chat-top-bar {
+  border-bottom: none !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+/* 17. The Action Ledger (Phase B - Steps 1 & 2) */
+
+/* The Glowing Vertical Timeline */
+.agent-thread::before {
+  width: 2px !important;
+  background: linear-gradient(to bottom, var(--aurex-accent), color-mix(in srgb, var(--aurex-accent) 20%, transparent)) !important;
+  box-shadow: 0 0 10px var(--aurex-accent-soft) !important;
+}
+
+/* The Execution Node Dots */
+.agent-thread-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: var(--aurex-accent) !important;
+  border: 2px solid var(--aurex-bg) !important;
+  box-shadow: 0 0 12px var(--aurex-accent) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Running state dot pulse */
+.agent-thread-node.running .agent-thread-dot {
+  background: var(--aurex-warning) !important;
+  box-shadow: 0 0 15px var(--aurex-warning) !important;
+}
+
+/* Error state dot */
+.agent-thread-node.error .agent-thread-dot {
+  background: var(--aurex-danger) !important;
+  box-shadow: 0 0 15px var(--aurex-danger) !important;
+}
+
+/* The Technical Execution Blocks (Ghost Layer) */
+.agent-thread-cmd, .agent-tool-output pre {
+  background: color-mix(in srgb, var(--aurex-surface) 60%, transparent) !important;
+  border: 1px solid var(--aurex-border) !important;
+  border-left: 3px solid color-mix(in srgb, var(--aurex-accent) 50%, transparent) !important;
+  border-radius: var(--aurex-radius-md) !important;
+  padding: 12px !important;
+  font-family: var(--aurex-font-mono) !important;
+  font-size: 0.85em !important;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.2) !important;
+  margin-top: 8px !important;
+  color: var(--aurex-text-muted) !important;
+}
+
+.agent-thread-node.running .agent-thread-cmd {
+  border-left-color: var(--aurex-warning) !important;
+  background: color-mix(in srgb, var(--aurex-warning) 5%, var(--aurex-surface)) !important;
+}
+
+.agent-thread-node.error .agent-thread-cmd, .agent-thread-node.error .agent-tool-output pre {
+  border-left-color: var(--aurex-danger) !important;
+  background: color-mix(in srgb, var(--aurex-danger) 5%, var(--aurex-surface)) !important;
+}
+
+/* Tool Header */
+.agent-thread-header {
+  font-family: var(--aurex-font-sans) !important;
+  font-weight: 500 !important;
+  color: var(--aurex-text) !important;
+  padding: 6px 8px !important;
+  border-radius: var(--aurex-radius-md) !important;
+  transition: all 0.2s ease !important;
+}
+.agent-thread-header:hover {
+  background: var(--aurex-surface-hover) !important;
+}
+
+.agent-thread-tool {
+  color: var(--aurex-accent) !important;
+  letter-spacing: 0.05em !important;
+  font-weight: 600 !important;
+}
+
+.agent-thread-node.running .agent-thread-tool {
+  color: var(--aurex-warning) !important;
+}
+.agent-thread-node.error .agent-thread-tool {
+  color: var(--aurex-danger) !important;
+}
+
+/* 18. Human vs AI Message Card Redesign */
+.msg-user {
+  /* High-Aesthetic / Arc Browser style vibrant pill */
+  background: linear-gradient(135deg, var(--aurex-accent), color-mix(in srgb, var(--aurex-accent) 40%, #ff007f)) !important;
+  border: none !important;
+  border-radius: 32px !important;
+  border-bottom-right-radius: 8px !important;
+  padding: 16px 24px !important;
+  color: #ffffff !important; 
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.5 !important;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--aurex-accent) 35%, transparent) !important;
+}
+
+.msg-ai {
+  /* VisionOS / Bento style frosted card */
+  background: color-mix(in srgb, var(--aurex-text) 3%, transparent) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border: 1px solid color-mix(in srgb, var(--aurex-text) 6%, transparent) !important;
+  border-top: 1px solid color-mix(in srgb, var(--aurex-text) 12%, transparent) !important;
+  border-radius: 32px !important;
+  border-top-left-radius: 8px !important;
+  padding: 20px 28px !important;
+  color: var(--fg) !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
+  margin: 16px 0 !important;
+  max-width: 95% !important;
+  line-height: 1.6 !important;
+}
+
+/* Ensure code blocks inside the new AI bubble fit the aesthetic */
+.msg-ai pre {
+  border-radius: 16px !important;
+  margin-top: 16px !important;
+  background: color-mix(in srgb, var(--aurex-bg) 60%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--aurex-text) 5%, transparent) !important;
+}
+
+/* 19. Floating Capsule Scroll Fix */
+#chat-history::after {
+  content: "";
+  display: block !important;
+  height: 220px !important; /* Ensure enough scrollable space past the floating capsule */
+  min-height: 220px !important;
+  flex-shrink: 0 !important;
+  width: 100% !important;
+}
+
+#chat-history {
+  padding-bottom: 0 !important; /* Remove the old padding since ::after handles it more reliably cross-browser */
+}
+
+/* Force transparency on sidebar brand text to prevent accidental artifacting */
+.sidebar-brand, .sidebar-brand-title {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Force transparency on sidebar-header to fix black padding rectangle */
+.sidebar-header {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 20. Fix Contrast for Text and Tools inside the Vibrant User Bubble */
+.msg-user {
+  color: color-mix(in srgb, var(--aurex-accent) 8%, white) !important;
+}
+
+.msg-user .role {
+  color: color-mix(in srgb, var(--aurex-accent) 12%, white) !important;
+  opacity: 1 !important;
+  font-weight: 600 !important;
+}
+
+.msg-user .body, 
+.msg-user .body p, 
+.msg-user .body span, 
+.msg-user .body div {
+  color: color-mix(in srgb, var(--aurex-accent) 5%, white) !important;
+}
+
+.msg-user .msg-footer,
+.msg-user .msg-footer span,
+.msg-user .msg-footer div,
+.msg-user .timestamp {
+  color: color-mix(in srgb, var(--aurex-accent) 25%, rgba(255, 255, 255, 0.75)) !important;
+}
+
+/* Edit, Delete, Copy buttons inside user bubble */
+.msg-user button, 
+.msg-user .msg-action-btn,
+.msg-user .copy-btn {
+  color: color-mix(in srgb, var(--aurex-accent) 20%, rgba(255, 255, 255, 0.85)) !important;
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.msg-user button:hover, 
+.msg-user .msg-action-btn:hover,
+.msg-user .copy-btn:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Links inside user bubble */
+.msg-user a {
+  color: color-mix(in srgb, var(--aurex-accent) 15%, white) !important;
+  text-decoration: underline !important;
+  text-decoration-color: rgba(255,255,255,0.6) !important;
+}
+
+/* Fix: Remove the solid background from the chat history container to let the frameless canvas show */
+#chat-history {
+  background: transparent !important;
+}
+
+/* Fix: Respect the "Make chat wide" toggle from Settings -> Personalize */
+body.fullwidth-chat #chat-history,
+body.fullwidth-chat .chat-container {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+body.fullwidth-chat .msg-user {
+  max-width: 95% !important;
+}
+
+/* 21. Smooth UI Transitions (Sidebar & Fullwidth) */
+.sidebar {
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#chat-history, .chat-container {
+  transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
+              width 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
+              padding 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              margin 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Ensure the sidebar's inner content doesn't abruptly disappear, let it slide smoothly */
+.sidebar-inner {
+  transition: opacity 0.3s ease !important;
+}
+.sidebar.hidden .sidebar-inner {
+  opacity: 0 !important;
+}
+
+/* Fix: The main chat container was also painting an opaque background over the canvas effects */
+main.chat-container {
+  background: transparent !important;
+}
+
+/* Fix: The welcome screen also needs to be transparent to let the ambient canvas effects through */
+#welcome-screen {
+  background: transparent !important;
+}
+
+/* Force canvas visibility */
+canvas.ambient-bg-canvas,
+#synapse-canvas, 
+#constellations-canvas, 
+#sparkles-canvas,
+#rain-canvas,
+#petals-canvas,
+#embers-canvas {
+  opacity: 1 !important;
+  z-index: 1 !important;
+  mix-blend-mode: screen;
+}
+
+/* Ensure nothing is blocking it */
+body[class*="bg-pattern-"] {
+  background-color: var(--aurex-bg) !important;
+}
+
+/* Keep chat on top of canvas */
+.chat-container {
+  z-index: 5 !important;
+  position: relative !important;
+}
+
+/* ── TIMESTAMPS: always match foreground color so they are readable in both themes ── */
+.msg .timestamp,
+.msg-ai .timestamp,
+.role-timestamp,
+.msg-footer .timestamp {
+  color: var(--fg) !important;
+  opacity: 1 !important;
+}
+/* Exception: timestamps inside the user bubble (vibrant gradient) always need white */
+.msg-user .timestamp,
+.msg-user .role-timestamp {
+  color: rgba(255,255,255,0.8) !important;
+}
+
+/* ── SIDEBAR & ICON-RAIL ICONS: use foreground color so they adapt to light/dark ── */
+.list-item svg,
+.icon-rail-btn svg,
+.section-header-btn svg,
+.list-item-plus-icon,
+.incognito-btn svg,
+.list-item-plus-btn svg,
+.sidebar svg,
+.icon-rail svg,
+.chat-new-btn svg {
+  opacity: 1 !important;
+  color: var(--fg) !important;
+}
+
+/* Icon-rail button text (the ✕ delete char) */
+.icon-rail-btn {
+  color: var(--fg) !important;
+}
+
+/* ── LIGHT MODE: slightly soften to 80% so they don't look too harsh ── */
+:root.light .sidebar svg,
+:root.light .icon-rail svg,
+:root.light .icon-rail-btn {
+  opacity: 0.8 !important;
+}
+
+/* ── DARK MODE: keep full brightness ── */
+:root:not(.light) .sidebar svg,
+:root:not(.light) .icon-rail svg,
+:root:not(.light) .icon-rail-btn {
+  opacity: 1 !important;
+}
+
+/* ==========================================================================
+   PHASE C: THE THINKING AURA (Organic Microinteractions)
+   ========================================================================== */
+
+/* The slow-breathing, animated gradient glow effect */
+@keyframes aurex-thinking-aura {
+  0% { 
+    box-shadow: 0 0 15px 0 color-mix(in srgb, var(--aurex-accent) 15%, transparent), 
+                0 0 30px 0 color-mix(in srgb, var(--aurex-accent) 5%, transparent); 
+  }
+  50% { 
+    box-shadow: 0 0 25px 3px color-mix(in srgb, var(--aurex-accent) 45%, transparent), 
+                0 0 50px 8px color-mix(in srgb, var(--aurex-accent) 25%, transparent); 
+  }
+  100% { 
+    box-shadow: 0 0 15px 0 color-mix(in srgb, var(--aurex-accent) 15%, transparent), 
+                0 0 30px 0 color-mix(in srgb, var(--aurex-accent) 5%, transparent); 
+  }
+}
+
+/* 1. Apply the aura to the Floating Chat Capsule while the AI is thinking/streaming */
+.chat-input-bar:has(.send-btn[data-mode="streaming"]),
+.chat-input-bar:has(.send-btn.send-pending) {
+  animation: aurex-thinking-aura 3.5s ease-in-out infinite !important;
+  border-color: color-mix(in srgb, var(--aurex-accent) 40%, var(--aurex-border)) !important;
+  transition: border-color 0.5s ease;
+}
+
+/* 2. Apply a subtler aura to the active AI message bubble that is currently typing out */
+.msg-ai.streaming {
+  animation: aurex-thinking-aura 3.5s ease-in-out infinite !important;
+  border: 1px solid color-mix(in srgb, var(--aurex-accent) 30%, transparent) !important;
+}
+
+/* 3. Give the actual stop button a cool neon pulse while streaming */
+.send-btn[data-mode="streaming"] {
+  background: var(--aurex-danger) !important;
+  color: var(--aurex-text) !important;
+  box-shadow: 0 0 15px color-mix(in srgb, var(--aurex-danger) 60%, transparent) !important;
+  animation: pulse-danger 2s infinite;
+}
+
+@keyframes pulse-danger {
+  0% { transform: scale(1); box-shadow: 0 0 10px color-mix(in srgb, var(--aurex-danger) 40%, transparent); }
+  50% { transform: scale(1.05); box-shadow: 0 0 20px color-mix(in srgb, var(--aurex-danger) 80%, transparent); }
+  100% { transform: scale(1); box-shadow: 0 0 10px color-mix(in srgb, var(--aurex-danger) 40%, transparent); }
+}
+/* Phase B: Action Ledger (Timeline View) */
+.chat-container {
+  position: relative;
+  /* Make room for the ledger line on the left */
+  padding-left: 28px !important;
+}
+
+/* The vertical glowing line */
+.chat-container::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  bottom: 0;
+  left: 12px;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--aurex-accent) 10%, var(--aurex-accent) 90%, transparent);
+  opacity: 0.2;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* The nodes for messages */
+.msg {
+  position: relative;
+  overflow: visible !important;
+}
+
+.msg::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: calc(-28px + 12px - 3px); /* 12px is line left, 3px is half of 8px width */
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--aurex-bg);
+  border: 2px solid var(--aurex-accent);
+  z-index: 1;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--aurex-accent) 60%, transparent);
+}
+
+.msg-user::before {
+  border-color: var(--fg);
+  box-shadow: none;
+  opacity: 0.3;
+}
+
+/* Tool Execution Nodes */
+.agent-thread {
+  position: relative;
+  overflow: visible !important;
+}
+.agent-thread::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: calc(-28px + 12px - 3px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--aurex-accent);
+  z-index: 1;
+  box-shadow: 0 0 10px var(--aurex-accent);
+}
+
+/* Redesign Execution Blocks */
+.agent-thread-node {
+  background: color-mix(in srgb, var(--aurex-surface) 60%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--aurex-accent) 20%, transparent) !important;
+  border-radius: var(--aurex-radius) !important;
+  box-shadow: var(--aurex-shadow-sm) !important;
+  margin-bottom: 8px !important;
+  overflow: hidden;
+}
+.agent-thread-header {
+  background: color-mix(in srgb, var(--aurex-accent) 5%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--aurex-accent) 10%, transparent) !important;
+  font-family: monospace;
+  font-size: 0.75rem;
+  padding: 6px 12px !important;
+}
+.agent-thread-cmd, .agent-thread-content {
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+/* ==========================================================================
+   LIGHT THEME COMPREHENSIVE FIX
+   Ensures all text, icons, and UI elements are dark/readable in light mode.
+   These rules override any accidental white-on-white issues.
+   ========================================================================== */
+
+:root.light {
+  /* Sidebar */
+  --aurex-bg: var(--bg);
+  --aurex-text: var(--fg);
+}
+
+/* All sidebar text */
+:root.light .sidebar,
+:root.light .sidebar *:not(.send-btn):not(.msg-user):not(.msg-user *) {
+  color: var(--fg) !important;
+}
+
+/* Section headers */
+:root.light .section-header,
+:root.light .section-header-text,
+:root.light .sidebar .section-header span {
+  color: var(--fg) !important;
+  opacity: 0.85 !important;
+}
+
+/* Session list items */
+:root.light .session-item,
+:root.light .session-item .session-title,
+:root.light .session-item .session-preview {
+  color: var(--fg) !important;
+}
+
+/* AI message body text in light mode */
+:root.light .msg-ai,
+:root.light .msg-ai .body,
+:root.light .msg-ai .body p,
+:root.light .msg-ai .body li,
+:root.light .msg-ai .body span,
+:root.light .msg-ai .body div,
+:root.light .msg-ai .role {
+  color: var(--fg) !important;
+}
+
+/* Role label (e.g., "Aurex") above AI bubble */
+:root.light .role-timestamp {
+  color: var(--fg) !important;
+  opacity: 0.55 !important;
+}
+
+/* Sidebar bottom buttons */
+:root.light .sidebar-settings-btn,
+:root.light .sidebar-settings-btn svg {
+  color: var(--fg) !important;
+  opacity: 0.7 !important;
+}
+
+/* Input bar area */
+:root.light .chat-input-bar,
+:root.light #message,
+:root.light .chat-input-bar textarea {
+  color: var(--fg) !important;
+}
+
+/* Frosted glass cards in light mode need a light tint, not dark */
+:root.light .msg-ai {
+  background: color-mix(in srgb, #000000 3%, transparent) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06) !important;
+}
+
+/* Fix: canvas mix-blend-mode for light theme — 'screen' blends poorly on white bg */
+:root.light canvas.ambient-bg-canvas,
+:root.light #synapse-canvas,
+:root.light #constellations-canvas,
+:root.light #sparkles-canvas {
+  mix-blend-mode: multiply !important;
+  opacity: 0.6 !important;
+}
+
+/* 22. Dynamic Island Top Header */
+.chat-top-bar {
+  position: absolute !important;
+  top: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: color-mix(in srgb, var(--aurex-surface-raised) 60%, transparent) !important;
+  backdrop-filter: blur(24px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+  border: 1px solid color-mix(in srgb, var(--aurex-text) 8%, transparent) !important;
+  border-radius: 30px !important;
+  padding: 6px 20px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+  z-index: 100 !important;
+  width: auto !important;
+  min-width: 200px !important;
+  margin-top: 0 !important;
+}
+
+:root.light .chat-top-bar {
+  background: var(--aurex-text) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08) !important;
+}
+
+/* Hide the pseudo elements or borders in the original top bar */
+.chat-top-bar::after, .chat-top-bar::before {
+  display: none !important;
+}
+
+
+/* Center text in the new Dynamic Island */
+.chat-meta-overlay {
+  position: static !important;
+  transform: none !important;
+  text-align: center !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+/* 24. Morphing Expanding Input Island */
+/* The input pill sits small and unassuming when idle, and springs open when focused or typed in */
+.chat-input-bar {
+  width: 40% !important;
+  min-width: 320px !important;
+  max-width: 760px !important;
+  border-radius: 40px !important;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              border-radius 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease !important;
+}
+
+/* When the user clicks into it, or there is text inside it, it springs open */
+.chat-input-bar:focus-within,
+.chat-input-bar:has(textarea:not(:placeholder-shown)) {
+  width: 90% !important;
+  border-radius: 24px !important;
+}
+
+/* Ensure the inner layout container transitions smoothly */
+.chat-input-bar .chat-input-bottom {
+  transition: padding 0.3s ease !important;
+}
+
+/* 25. Detached Floating Navigation Panel */
+@media (min-width: 769px) {
+  #sidebar, .sidebar {
+    height: calc(100vh - 40px) !important; 
+    margin: 20px 0 20px 0 !important; 
+    border-radius: 24px !important; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+  }
+  
+  #icon-rail, .icon-rail {
+    height: calc(100vh - 40px) !important;
+    margin: 20px 15px 20px 20px !important;
+    border-radius: 24px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+    border-right: none !important;
+    background: color-mix(in srgb, var(--aurex-surface) 40%, transparent) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+  }
+  
+  /* When sidebar is opened next to icon rail */
+  body:not(.sidebar-collapsed) .sidebar {
+    margin-left: 0 !important;
+  }
+}
+
+/* 24. Morphing Expanding Input Island */
+/* The input pill sits small and unassuming when idle, and springs open when focused or typed in */
+.chat-input-bar {
+  width: 320px !important;
+  max-width: 760px !important;
+  border-radius: 40px !important;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              border-radius 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease !important;
+}
+
+/* When the user clicks into it, or there is text inside it, it springs open */
+.chat-input-bar:focus-within,
+.chat-input-bar:has(textarea:not(:placeholder-shown)) {
+  width: 90% !important;
+  border-radius: 28px !important;
+}
+
+/* Ensure the inner layout container transitions smoothly */
+.chat-input-bar .chat-input-bottom {
+  transition: padding 0.3s ease !important;
+}
+
+/* 26. Fix Hamburger Button Alignment */
+.hamburger-btn {
+  top: 24px !important;
+  left: 24px !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+body:not(.sidebar-collapsed) .hamburger-btn {
+  display: none !important;
+}
+
+/* 27. Fix Inner Hamburger Alignment */
+.sidebar-header {
+  position: relative !important;
+  padding: 0 0 16px 0 !important; /* Remove weird default padding */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important; /* Brand on left, Hamburger on right */
+}
+
+/* Ensure the brand text aligns cleanly */
+.sidebar-brand {
+  margin-left: 0 !important;
+}
+.sidebar-brand-title {
+  left: 0 !important;
+}
+
+/* Make the collapse hamburger crisp and aligned */
+#sidebar-collapse-btn {
+  position: relative !important;
+  display: flex !important;
+  width: 36px !important;
+  height: 36px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--aurex-text) 5%, transparent) !important;
+}
+#sidebar-collapse-btn:hover {
+  background: color-mix(in srgb, var(--aurex-text) 10%, transparent) !important;
+}
+
+
+/* =========================================================================
+   PROVIDER INTELLIGENCE CENTER (Phase 4)
+   ========================================================================= */
+
+.pi-modal-content {
+  pointer-events: auto !important;
+  background: var(--aurex-bg) !important;
+  border: 1px solid var(--aurex-border) !important;
+  display: flex;
+  flex-direction: column;
+  position: relative !important;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8) !important;
+  width: min(1080px, 94vw) !important;
+  height: min(780px, 85vh) !important;
+  max-height: 85vh !important;
+}
+
+:root.ui-scale-125 .pi-modal-content {
+  height: min(calc(780px / 1.25), calc(85dvh / 1.25)) !important;
+  max-height: calc(85dvh / 1.25) !important;
+}
+
+.pi-header {
+  border-bottom: 1px solid var(--aurex-border) !important;
+  background: transparent !important;
+  padding: 24px 32px !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.pi-title-block {
+  display: flex;
+  flex-direction: column;
+  position: relative !important;
+  gap: 4px;
+}
+
+.pi-title {
+  font-family: var(--font-sans);
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--aurex-text);
+}
+
+.pi-subtitle {
+  font-size: 13px;
+  color: var(--aurex-text-muted);
+}
+
+.pi-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.pi-sidebar {
+  width: 220px;
+  border-right: 1px solid var(--aurex-border);
+  background: var(--aurex-bg);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  position: relative !important;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.pi-nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--aurex-text-muted);
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pi-nav-btn:hover {
+  background: var(--aurex-surface-hover);
+  color: var(--aurex-text);
+}
+
+.pi-nav-btn.active {
+  background: var(--aurex-accent-soft);
+  color: var(--aurex-accent);
+}
+
+.pi-content {
+  flex: 1;
+  min-height: 0;
+  padding: 32px;
+  overflow-y: auto;
+  position: relative;
+  background: var(--aurex-bg);
+}
+
+.pi-page {
+  display: none;
+  animation: piFadeIn 0.3s ease forwards;
+}
+
+.pi-page.active {
+  display: block;
+}
+
+@keyframes piFadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Overview */
+.pi-hero {
+  margin-bottom: 40px;
+}
+
+.pi-hero-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: -0.03em;
+}
+
+.pi-hero-subtitle {
+  font-size: 15px;
+  color: var(--aurex-text-muted);
+  margin-bottom: 20px;
+}
+
+.pi-hero-stats {
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  color: var(--aurex-accent);
+  background: var(--aurex-accent-soft);
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.pi-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.pi-card {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.pi-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--aurex-border-hover);
+}
+
+.pi-card-header {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--aurex-text-subtle);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.pi-status-val {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pi-status-sub {
+  font-size: 13px;
+  color: var(--aurex-text-subtle);
+}
+
+.pi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.pi-healthy { background: #2ea043; }
+.pi-degraded { background: #d97706; }
+.pi-unavailable { background: #d32f2f; }
+.pi-local-badge {
+  background: var(--aurex-border);
+  color: var(--aurex-text);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Toolbar & Grid */
+.pi-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.pi-input, .pi-select {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  color: var(--aurex-text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  outline: none;
+}
+.pi-input:focus, .pi-select:focus {
+  border-color: var(--aurex-accent);
+}
+
+.pi-model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.pi-model-card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  position: relative !important;
+}
+
+.pi-model-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.pi-model-provider {
+  font-size: 13px;
+  color: var(--aurex-text-muted);
+  margin-bottom: 16px;
+}
+
+.pi-model-caps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.pi-cap-chip {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  background: var(--aurex-border);
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: var(--aurex-text);
+}
+
+.pi-model-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--aurex-border);
+  font-size: 13px;
+}
+
+/* Empty State */
+.pi-empty-state {
+  display: flex;
+  flex-direction: column;
+  position: relative !important;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--aurex-text-subtle);
+  padding: 40px;
+}
+
+.pi-empty-state h3 {
+  color: var(--aurex-text);
+  margin-bottom: 8px;
+}
+
+/* Detail Panel (Sliding Drawer) */
+.pi-detail-panel {
+  position: absolute !important;
+  top: 0; right: 0; bottom: 0;
+  width: min(440px, 100%);
+  background: var(--aurex-surface);
+  border-left: 1px solid var(--aurex-border);
+  box-shadow: -20px 0 40px rgba(0, 0, 0, 0.6);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(0);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  pointer-events: auto;
+}
+
+.pi-detail-panel.hidden {
+  transform: translateX(100%) !important;
+  opacity: 0;
+  pointer-events: none !important;
+}
+
+.pi-detail-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--aurex-border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pi-detail-back {
+  background: transparent;
+  border: none;
+  color: var(--aurex-text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+.pi-detail-back:hover { color: var(--aurex-text); }
+
+.pi-detail-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.pi-detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.pi-detail-label { color: var(--aurex-text-muted); }
+.pi-detail-value { font-family: 'Fira Code', monospace; color: var(--aurex-text); }
+
+.pi-routing-viz {
+  display: flex;
+  flex-direction: column;
+  position: relative !important;
+  align-items: center;
+  gap: 20px;
+  padding: 40px 0;
+}
+
+.pi-routing-node {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  padding: 16px 24px;
+  border-radius: 8px;
+  text-align: center;
+  min-width: 250px;
+}
+
+.pi-routing-arrow {
+  color: rgba(255,255,255,0.2);
+}
+
+.pi-btn {
+  background: var(--aurex-border);
+  color: var(--aurex-text);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.pi-btn-primary {
+  background: var(--aurex-accent);
+}
+
+.pi-pref-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+
+/* Desktop Backdrop & Modal Overlay for Provider Intelligence */
+#provider-intelligence-modal {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(4, 7, 14, 0.78) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  z-index: 2500 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: auto !important;
+  opacity: 1;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#provider-intelligence-modal.hidden {
+  display: none !important;
+  pointer-events: none !important;
+  opacity: 0;
+}
+
+/* Quick Action Navigation Cards on Overview */
+.pi-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.pi-action-card {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.pi-action-card:hover {
+  background: var(--aurex-surface-hover);
+  border-color: var(--aurex-accent);
+  transform: translateY(-2px);
+}
+
+.pi-action-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--aurex-accent-soft);
+  color: var(--aurex-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pi-action-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--aurex-text);
+  margin-bottom: 2px;
+}
+
+.pi-action-desc {
+  font-size: 12px;
+  color: var(--aurex-text-muted);
+}
+
+/* Health Tab Styles */
+.pi-health-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.pi-health-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.pi-health-card {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.pi-health-card:hover {
+  border-color: var(--aurex-border-hover);
+  transform: translateY(-2px);
+}
+
+.pi-health-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.pi-health-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--aurex-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pi-health-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pi-health-badge.healthy {
+  background: rgba(46, 160, 67, 0.15);
+  color: #3fb950;
+  border: 1px solid rgba(46, 160, 67, 0.3);
+}
+
+.pi-health-badge.disabled {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.pi-health-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: color-mix(in srgb, var(--aurex-bg) 50%, transparent);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.pi-health-meta-label {
+  color: var(--aurex-text-muted);
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.pi-health-meta-val {
+  font-weight: 550;
+  color: var(--aurex-text);
+  font-family: 'Fira Code', monospace;
+}
+
+.pi-health-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.pi-ping-btn {
+  background: transparent;
+  border: 1px solid var(--aurex-border);
+  color: var(--aurex-text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.pi-ping-btn:hover {
+  background: var(--aurex-surface-hover);
+  border-color: var(--aurex-accent);
+}
+
+/* Usage Tab Styles */
+.pi-usage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.pi-usage-stat-card {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.pi-usage-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--aurex-text-subtle);
+  margin-bottom: 8px;
+}
+
+.pi-usage-stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--aurex-text);
+  font-family: 'Fira Code', monospace;
+  margin-bottom: 4px;
+}
+
+.pi-usage-stat-sub {
+  font-size: 12px;
+  color: var(--aurex-text-muted);
+}
+
+.pi-usage-section {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.pi-usage-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--aurex-text);
+}
+
+/* Routing Tab Styles */
+.pi-routing-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.pi-routing-pipeline-box {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.pi-pipeline-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pi-pipeline-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--aurex-bg) 60%, transparent);
+  border-left: 3px solid var(--aurex-accent);
+}
+
+.pi-step-num {
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  background: var(--aurex-accent-soft);
+  color: var(--aurex-accent);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.pi-step-body h5 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  color: var(--aurex-text);
+}
+
+.pi-step-body p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--aurex-text-muted);
+}
+
+.pi-sim-panel {
+  background: var(--aurex-surface);
+  border: 1px solid var(--aurex-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.pi-sim-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  align-items: flex-end;
+}
+
+.pi-sim-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pi-sim-form-group label {
+  font-size: 12px;
+  color: var(--aurex-text-muted);
+  font-weight: 500;
+}
+
+.pi-sim-res-box {
+  margin-top: 20px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--aurex-accent-soft) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--aurex-accent) 30%, transparent);
+}
+
+/* Responsive Mobile Layout for Provider Intelligence */
+@media (max-width: 768px) {
+  #provider-intelligence-modal {
+    padding: 0;
+    align-items: flex-end;
+  }
+  #provider-intelligence-modal .pi-modal-content {
+    width: 100vw !important;
+    height: 92dvh !important;
+    max-height: 92dvh !important;
+    border-radius: 16px 16px 0 0 !important;
+    border-bottom: none !important;
+  }
+  .pi-layout {
+    flex-direction: column;
+  }
+  .pi-sidebar {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    flex-direction: row !important;
+    overflow-x: auto;
+    border-right: none !important;
+    border-bottom: 1px solid var(--aurex-border) !important;
+    padding: 8px 12px !important;
+    gap: 8px !important;
+  }
+  .pi-nav-btn {
+    white-space: nowrap !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+  .pi-content {
+    padding: 20px 16px !important;
+  }
+  .pi-detail-panel {
+    width: 100% !important;
+  }
+}
+
+
+
+/* Center modals over the chat area, not the viewport */
+body:not(:has(.sidebar.right-side)) .modal {
+  left: var(--sidebar-w, 0px) !important;
+  width: calc(100% - var(--sidebar-w, 0px) - var(--icon-rail-w, 0px)) !important;
+}
+
+body:has(.sidebar.right-side) .modal {
+  left: var(--icon-rail-w, 0px) !important;
+  width: calc(100% - var(--sidebar-w, 0px) - var(--icon-rail-w, 0px)) !important;
+}
+
+/* 27. Input Island Wrapper */
+.input-island-wrapper {
+  position: absolute !important;
+  bottom: 0px !important;
+  left: 0 !important;
+  width: 100% !important;
+  pointer-events: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  padding-bottom: 30px !important;
+  z-index: 100 !important;
+}
+
+.input-island-wrapper > * {
+  pointer-events: auto !important;
+}
+
+.chat-input-bar {
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+.attach-strip {
+  width: 90% !important;
+  max-width: 760px !important;
+  margin-bottom: 12px !important;
+}
+
+/* 28. Advanced Tools Sidebar Details */
+.advanced-tools-details summary {
+  list-style: none;
+}
+.advanced-tools-details summary::-webkit-details-marker {
+  display: none;
+}
+.advanced-tools-details[open] summary .chevron {
+  transform: rotate(180deg);
+}
+.advanced-tools-details summary .chevron {
+  transition: transform 0.2s ease;
+  opacity: 0.5;
+}
+
+/* 29. Attach Button Expansion */
+.overflow-plus-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  border-radius: 20px !important;
+  padding: 0 10px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow: hidden !important;
+  width: 36px !important;
+  white-space: nowrap !important;
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.overflow-plus-btn:hover {
+  width: 90px !important;
+  background: var(--surface-2) !important;
+}
+
+.plus-btn-label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  opacity: 0 !important;
+  transform: translateX(-10px) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  pointer-events: none !important;
+  width: 0 !important;
+}
+
+.overflow-plus-btn:hover .plus-btn-label {
+  opacity: 1 !important;
+  transform: translateX(6px) !important;
+  width: auto !important;
+}
+
+/* Ensure svg in overflow-plus-btn stays centered/left */
+.overflow-plus-btn svg {
+  flex-shrink: 0 !important;
+}
+
+/* 30. Welcome Dashboard Grid */
+.welcome-setup-grid {
+  width: 100%;
+  max-width: 600px;
+  margin: 32px auto 0;
+  pointer-events: auto !important;
+}
+
+.welcome-grid-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+}
+
+.welcome-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.welcome-card:hover {
+  background: var(--surface-2);
+  border-color: var(--fg-muted);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.welcome-card svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.7;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--aurex-accent);
+}
+
+.welcome-card-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.welcome-card-text p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fg-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+  .welcome-grid-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fix welcome-active input bar position so it is positioned just below the cards */
+.chat-container.welcome-active .chat-input-bar {
+  margin-bottom: 20vh !important;
+}
+@media (max-height: 800px) {
+  .chat-container.welcome-active .chat-input-bar {
+    margin-bottom: 12vh !important;
+  }
+}
+@media (max-height: 600px) {
+  .chat-container.welcome-active .chat-input-bar {
+    margin-bottom: 5vh !important;
+  }
+}
+
+#welcome-screen {
+  top: 35% !important;
+}
+
+/* 31. Relocate Minimized Dock */
+/* Move minimized widgets/modals away from the text input area to the top right */
+#minimized-dock {
+  top: 70px !important;
+  bottom: auto !important;
+  right: calc(24px + var(--right-dock-w, 0px)) !important;
+  left: auto !important;
+  transform: none !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  transition: right 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+@media (max-width: 768px) {
+  #minimized-dock {
+    top: 60px !important;
+    right: calc(12px + var(--right-dock-w, 0px)) !important;
+  }
+}
+
+/* Fix search provider dropdown visibility */
+.adm-provider-picker {
+  z-index: 200 !important;
+}
+.adm-provider-menu {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.adm-provider-menu.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+.settings-row, .settings-col {
+  overflow: visible !important;
+}

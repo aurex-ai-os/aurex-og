@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-visual">
+<title>Aurex</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' stroke='%2371717a' stroke-width='2' fill='none'/%3E%3Cpath d='M16 4 L5 24 L11 24 L16 14 Z' fill='%23a1a1aa'/%3E%3Cpath d='M16 4 L27 24 L21 24 L16 14 Z' fill='%23ffffff'/%3E%3Cpath d='M16 17 L19 20 L16 23 L13 20 Z' fill='%23ffffff'/%3E%3C/svg%3E">
+<link rel="manifest" href="static/manifest.json">
+<link rel="apple-touch-icon" href="static/icons/icon-192.png">
+<script nonce="{{CSP_NONCE}}">
+(function(){
+  function computeAppBasePath() {
+    var path = window.location.pathname || '/login';
+    if (path === '/login') {
+      return '';
+    }
+    if (path.endsWith('/login')) {
+      return path.slice(0, -'/login'.length).replace(/\/+$/, '');
+    }
+    return '';
+  }
+  var appBasePath = computeAppBasePath();
+  window.__aurexLoginBasePath = appBasePath;
+  window.__aurexLoginAppUrl = function(path) {
+    var normalizedPath = String(path || '/');
+    if (!normalizedPath.startsWith('/')) {
+      normalizedPath = '/' + normalizedPath;
+    }
+    return appBasePath + normalizedPath;
+  };
+  var THEME_DEFAULT_PATTERN = {
+    dark:'none', light:'dots', midnight:'rain', paper:'dots',
+    cyberpunk:'synapse', retrowave:'embers', forest:'petals',
+    ocean:'constellations', terminal:'perlin-flow', organs:'rain',
+    ume:'petals', cute:'sparkles'
+  };
+  var THEME_DEFAULT_EFFECT_COLOR = {
+    midnight:'#ffffff', organs:'#451616', cute:'#ff8cb8', ume:'#f5a0c0'
+  };
+  var THEME_DEFAULT_INTENSITY = { midnight:0.5, terminal:0.8, organs:0.65 };
+  try {
+    var t = JSON.parse(localStorage.getItem('aurex-theme'));
+    var s = document.documentElement.style;
+    if (t && t.colors) {
+      var c = t.colors;
+      s.setProperty('--bg', c.bg);
+      s.setProperty('--fg', c.fg);
+      s.setProperty('--panel', c.panel);
+      s.setProperty('--border', c.border);
+      if (c.red) s.setProperty('--red', c.red);
+      if (c.green) s.setProperty('--green', c.green);
+      var a = c.advanced || {};
+      var ADV = {
+        userBubbleBg:    '--user-bubble-bg',
+        aiBubbleBg:      '--ai-bubble-bg',
+        bubbleBorder:    '--bubble-border',
+        sidebarBg:       '--sidebar-bg',
+        brandColor:      '--brand-color',
+        hamburgerColor:  '--hamburger-color',
+        inputBg:         '--input-bg',
+        inputBorder:     '--input-border',
+        sendBtnBg:       '--send-btn-bg',
+        sendBtnHover:    '--send-btn-hover',
+        codeBg:          '--code-bg',
+        codeFg:          '--code-fg',
+        toggleActive:    '--toggle-active',
+      };
+      for (var k in ADV) { if (a[k]) s.setProperty(ADV[k], a[k]); }
+    }
+    var name = (t && t.name) || '';
+    var PATTERNS = ['dots','synapse','rain','constellations','petals','sparkles','embers'];
+    var pattern = PATTERNS[Math.floor(Math.random() * PATTERNS.length)];
+    var effColor = (t && t.bgEffectColor) || THEME_DEFAULT_EFFECT_COLOR[name] || '';
+    var effInt = (t && t.bgEffectIntensity !== undefined)
+      ? t.bgEffectIntensity
+      : (THEME_DEFAULT_INTENSITY[name] !== undefined ? THEME_DEFAULT_INTENSITY[name] : 1);
+    var effSize = (t && t.bgEffectSize !== undefined) ? t.bgEffectSize : 1;
+    if (effColor) s.setProperty('--bg-effect-color', effColor);
+    s.setProperty('--bg-effect-intensity', String(effInt));
+    s.setProperty('--bg-effect-size', String(effSize));
+    window.__loginBgPattern = pattern;
+    var apply = function() { document.body.classList.add('bg-pattern-' + pattern); };
+    if (document.body) apply();
+    else document.addEventListener('DOMContentLoaded', apply, { once: true });
+  } catch(e){}
+})();
+</script>
+<style>
+  @font-face { font-family: 'Fira Code'; font-weight: 400; font-style: normal; font-display: swap; src: url('static/fonts/FiraCode-Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'Fira Code'; font-weight: 600; font-style: normal; font-display: swap; src: url('static/fonts/FiraCode-SemiBold.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; font-display: swap; src: url('static/fonts/Inter-Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: swap; src: url('static/fonts/Inter-Medium.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: swap; src: url('static/fonts/Inter-SemiBold.woff2') format('woff2'); }
+
+  :root {
+    --bg: #09090b;
+    --fg: #fafafa;
+    --muted: #71717a;
+    --panel: #111113;
+    --border: #27272a;
+    --border-hover: #3f3f46;
+    --input-bg: #161619;
+    --accent: #ffffff;
+    --accent-fg: #09090b;
+    --error: #ef4444;
+    --bg-effect-intensity: 1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: 
+      radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 255, 255, 0.05) 0%, transparent 70%),
+      radial-gradient(circle 800px at 50% 100%, rgba(255, 255, 255, 0.02) 0%, transparent 60%),
+      var(--bg);
+    color: var(--fg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 32px 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: padding-top 0.25s ease;
+  }
+
+  /* Background subtle pattern support */
+  #synapse-canvas, #rain-canvas, #constellations-canvas,
+  #perlin-flow-canvas, #petals-canvas, #sparkles-canvas,
+  #embers-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: var(--bg-effect-intensity, 1);
+  }
+
+  body.bg-pattern-dots {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-attachment: fixed;
+  }
+
+  body.bg-pattern-synapse {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-attachment: fixed;
+  }
+
+  /* Elegant, minimal floating card */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px 32px;
+    width: 380px;
+    max-width: 92vw;
+    position: relative;
+    z-index: 10;
+    box-shadow: 
+      0 1px 2px rgba(0, 0, 0, 0.5),
+      0 24px 64px -12px rgba(0, 0, 0, 0.85),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card:hover {
+    border-color: var(--border-hover);
+  }
+
+  /* Header Branding */
+  .header {
+    margin-bottom: 28px;
+    text-align: left;
+  }
+
+  .logo-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .logo-boat {
+    width: 20px;
+    height: 20px;
+    color: #fafafa;
+  }
+
+  .title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: #ffffff;
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+    color: var(--muted);
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  /* Notices & Errors */
+  .setup-note {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+    font-size: 0.8125rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    line-height: 1.4;
+  }
+
+  .error {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+    font-size: 0.8125rem;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    display: none;
+    line-height: 1.4;
+  }
+
+  /* Inputs & Form */
+  .field {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #d4d4d8;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  input:not(.remember-check) {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    outline: none;
+  }
+
+  input[type="password"] {
+    padding-right: 38px;
+  }
+
+  input:not(.remember-check)::placeholder {
+    color: #52525b;
+  }
+
+  input:not(.remember-check):hover {
+    border-color: #3f3f46;
+  }
+
+  input:not(.remember-check):focus {
+    border-color: #71717a;
+    box-shadow: 0 0 0 1px #71717a;
+    background: #18181b;
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    input:not(.remember-check) { font-size: 16px !important; }
+  }
+
+  input:focus-visible, a:focus-visible, button:focus-visible {
+    outline: 2px solid #a1a1aa;
+    outline-offset: 2px;
+  }
+
+  /* Password Toggle */
+  .pw-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: #71717a;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+  }
+
+  .pw-toggle:hover {
+    color: #d4d4d8;
+  }
+
+  /* Remember Me */
+  .remember-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: -2px;
+    margin-bottom: 22px;
+  }
+
+  .remember-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #a1a1aa;
+    font-size: 0.8125rem;
+    user-select: none;
+    font-weight: 400;
+  }
+
+  .remember-label:hover {
+    color: #d4d4d8;
+  }
+
+  .remember-toggle {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+  }
+
+  .remember-check {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .remember-dot {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    border: 1px solid #3f3f46;
+    background: #18181b;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .remember-check:checked + .remember-dot {
+    background: #ffffff;
+    border-color: #ffffff;
+  }
+
+  .remember-check:checked + .remember-dot::after {
+    content: '';
+    width: 4px;
+    height: 7.5px;
+    border: solid #09090b;
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+    margin-bottom: 1.5px;
+  }
+
+  /* Primary High-Contrast Button (Linear / Vercel style) */
+  button[type="submit"] {
+    width: 100%;
+    height: 42px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #09090b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  button[type="submit"]:hover {
+    background: #f4f4f5;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.08);
+  }
+
+  button[type="submit"]:active {
+    background: #e4e4e7;
+    transform: scale(0.99);
+  }
+
+  button[type="submit"]:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .login-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-top-color: #09090b;
+    border-radius: 50%;
+    animation: login-spin 0.6s linear infinite;
+  }
+
+  @keyframes login-spin { to { transform: rotate(360deg); } }
+
+  /* Bottom Switch */
+  .toggle {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  .toggle a {
+    color: #e4e4e7;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .toggle a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #52525b;
+    user-select: none;
+  }
+
+  .version-label {
+    position: fixed;
+    bottom: 16px;
+    right: 18px;
+    font-size: 0.75rem;
+    color: #52525b;
+    font-family: 'Fira Code', monospace;
+    pointer-events: none;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<main class="card">
+  <div class="header">
+    <div class="logo-icon-wrap" aria-hidden="true">
+      <svg class="logo-boat" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2.5" fill="none" opacity="0.4"/>
+        <path d="M16 4 L5 24 L11 24 L16 14 Z" fill="currentColor" opacity="0.5"/>
+        <path d="M16 4 L27 24 L21 24 L16 14 Z" fill="currentColor" opacity="0.9"/>
+        <path d="M16 17 L19 20 L16 23 L13 20 Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <h1 class="title">Sign in to Aurex</h1>
+    <p class="subtitle">Welcome back. Please enter your credentials.</p>
+  </div>
+
+  <p class="setup-note" id="setupNote" style="display:none"></p>
+  <div class="error" id="error" role="alert" aria-live="assertive"></div>
+
+  <form id="authForm" autocomplete="on">
+    <div class="field">
+      <label for="username">Username</label>
+      <div class="input-wrap">
+        <input id="username" name="username" type="text" placeholder="name@domain.com" required autofocus autocomplete="username">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="password">Password</label>
+      <div class="input-wrap">
+        <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="current-password">
+        <button type="button" class="pw-toggle" id="pwToggle" tabindex="-1" aria-label="Show password">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="confirmGroup" class="field" style="display:none">
+      <label for="confirmPassword">Confirm Password</label>
+      <div class="input-wrap">
+        <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirm your password" autocomplete="new-password">
+        <button type="button" class="pw-toggle" id="pwToggleConfirm" tabindex="-1" aria-label="Show password">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="remember-wrapper" id="rememberWrapper">
+      <label class="remember-label" for="remember">
+        <span class="remember-toggle" id="rememberToggle" title="Remember me">
+          <input type="checkbox" class="remember-check" id="remember" checked aria-label="Remember me">
+          <span class="remember-dot" aria-hidden="true"></span>
+        </span>
+        Remember me
+      </label>
+    </div>
+
+    <button type="submit" id="submitBtn">Sign In</button>
+  </form>
+
+  <div class="toggle" id="toggleArea" style="display:none">
+    <span id="toggleText">Don't have an account? </span>
+    <a id="toggleLink" href="#">Sign up</a>
+  </div>
+</main>
+
+<div class="footer">
+  <span>Private &bull; Encrypted &bull; Local-First</span>
+</div>
+
+<footer class="version-label" id="version-label"></footer>
+
+<script nonce="{{CSP_NONCE}}">
+(async () => {
+  const appUrl = window.__aurexLoginAppUrl || ((path) => path);
+  try {
+    const vr = await fetch(appUrl('/api/version'));
+    if (vr.ok) {
+      const vd = await vr.json();
+      document.getElementById('version-label').textContent = 'v' + vd.version;
+    }
+  } catch(e) {}
+
+  const usernameInput = document.getElementById('username');
+  const savedUser = localStorage.getItem('aurex-last-user');
+  if (savedUser && usernameInput) {
+    usernameInput.value = savedUser;
+    document.getElementById('password').focus();
+  }
+
+  const form = document.getElementById('authForm');
+  const errEl = document.getElementById('error');
+  const setupNote = document.getElementById('setupNote');
+  const confirmGroup = document.getElementById('confirmGroup');
+  const submitBtn = document.getElementById('submitBtn');
+  const toggleArea = document.getElementById('toggleArea');
+  const toggleLink = document.getElementById('toggleLink');
+  const toggleText = document.getElementById('toggleText');
+  const rememberWrapper = document.getElementById('rememberWrapper');
+
+  let mode = 'login';
+  let signupAllowed = false;
+  let policy = { password_min_length: 8, reserved_usernames: [] };
+
+  function setMode(m) {
+    mode = m;
+    errEl.style.display = 'none';
+    if (m === 'setup') {
+      setupNote.textContent = 'First-time setup — create your administrator account';
+      setupNote.style.display = 'block';
+      confirmGroup.style.display = 'flex';
+      submitBtn.textContent = 'Create Admin Account';
+      toggleArea.style.display = 'none';
+      if (rememberWrapper) rememberWrapper.style.display = 'none';
+    } else if (m === 'signup') {
+      setupNote.style.display = 'none';
+      confirmGroup.style.display = 'flex';
+      submitBtn.textContent = 'Create Account';
+      toggleArea.style.display = 'block';
+      toggleText.textContent = 'Already have an account? ';
+      toggleLink.textContent = 'Sign in';
+      if (rememberWrapper) rememberWrapper.style.display = 'none';
+    } else {
+      setupNote.style.display = 'none';
+      confirmGroup.style.display = 'none';
+      submitBtn.textContent = 'Sign In';
+      toggleArea.style.display = signupAllowed ? 'block' : 'none';
+      toggleText.textContent = "Don't have an account? ";
+      toggleLink.textContent = 'Sign up';
+      if (rememberWrapper) rememberWrapper.style.display = 'flex';
+    }
+  }
+
+  const policyPromise = fetch(appUrl('/api/auth/policy'), { credentials: 'same-origin' }).catch(() => null);
+  try {
+    const statusRes = await fetch(appUrl('/api/auth/status'), { credentials: 'same-origin' });
+    const data = await statusRes.json();
+    if (data.authenticated) {
+      window.location.replace(appUrl('/'));
+      return;
+    }
+    signupAllowed = !!data.signup_enabled;
+    if (!data.configured) {
+      setMode('setup');
+    } else {
+      setMode('login');
+    }
+    const policyRes = await policyPromise;
+    if (policyRes && policyRes.ok) {
+      policy = await policyRes.json();
+    }
+  } catch (e) {
+    setMode('login');
+  }
+
+  toggleLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    setMode(mode === 'login' ? 'signup' : 'login');
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errEl.style.display = 'none';
+    submitBtn.disabled = true;
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (form._totpMode) {
+      const totpInput = document.getElementById('totp-input');
+      const code = totpInput ? totpInput.value.trim() : '';
+      if (!code) { totpInput.focus(); submitBtn.disabled = false; return; }
+      const remember = document.getElementById('remember').checked;
+      try {
+        const res = await fetch(appUrl('/api/auth/login'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ username, password, remember, totp_code: code })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Invalid code');
+        if (!data.ok) throw new Error('Login failed');
+        form._totpMode = false;
+        finishLogin();
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+      }
+      return;
+    }
+
+    if (mode === 'setup' || mode === 'signup') {
+      const confirm = document.getElementById('confirmPassword').value;
+      if (password !== confirm) {
+        errEl.textContent = 'Passwords do not match';
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        return;
+      }
+      if (password.length < policy.password_min_length) {
+        errEl.textContent = `Password must be at least ${policy.password_min_length} characters`;
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        return;
+      }
+      if (policy.reserved_usernames.includes(username.toLowerCase())) {
+        errEl.textContent = 'This username is reserved';
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        return;
+      }
+    }
+
+    if (mode === 'setup' || mode === 'signup') {
+      const endpoint = mode === 'setup' ? appUrl('/api/auth/setup') : appUrl('/api/auth/signup');
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Account creation failed');
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        return;
+      }
+    }
+
+    const remember = document.getElementById('remember').checked;
+    function finishLogin() {
+      const _rem = document.getElementById('remember').checked;
+      if (_rem) localStorage.setItem('aurex-last-user', username);
+      else localStorage.removeItem('aurex-last-user');
+      sessionStorage.removeItem('ody-session-active');
+      submitBtn.innerHTML = '<span class="login-spinner" aria-hidden="true"></span>';
+      submitBtn.disabled = true;
+      Promise.all([
+        fetch(appUrl('/api/sessions'), { credentials: 'same-origin' }).then(r => r.json()),
+        fetch(appUrl('/api/auth/features'), { credentials: 'same-origin' }).then(r => r.json()),
+        fetch(appUrl('/api/auth/settings'), { credentials: 'same-origin' }).then(r => r.json()),
+      ]).then(([sess, feat, sett]) => {
+        sessionStorage.setItem('ody-prefetch-sessions', JSON.stringify(sess));
+        sessionStorage.setItem('ody-prefetch-features', JSON.stringify(feat));
+        sessionStorage.setItem('ody-prefetch-settings', JSON.stringify(sett));
+      }).catch(() => {}).finally(() => { window.location.replace(appUrl('/')); });
+    }
+
+    async function doLogin(totpCode) {
+      const loginBody = { username, password, remember };
+      if (totpCode) loginBody.totp_code = totpCode;
+      const res = await fetch(appUrl('/api/auth/login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(loginBody)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Login failed');
+      return data;
+    }
+
+    try {
+      let data = await doLogin();
+      if (data.requires_totp) {
+        submitBtn.disabled = false;
+        if (document.getElementById('totp-input')) return;
+        form._totpMode = true;
+        const totpWrap = document.createElement('div');
+        totpWrap.className = 'field';
+        totpWrap.style.cssText = 'margin-top:14px;';
+        totpWrap.innerHTML = `
+          <label for="totp-input">Two-Factor Authentication Code</label>
+          <div class="input-wrap">
+            <input type="text" id="totp-input" placeholder="000000" aria-label="Two-factor authentication code" autocomplete="one-time-code" inputmode="numeric" maxlength="8" style="text-align:center;letter-spacing:4px;font-family:'Fira Code',monospace;">
+          </div>
+        `;
+        const formEl = submitBtn.parentElement;
+        formEl.insertBefore(totpWrap, submitBtn);
+        const totpInput = document.getElementById('totp-input');
+        totpInput.focus();
+        submitBtn.textContent = 'Verify';
+        return;
+      }
+      finishLogin();
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+      submitBtn.disabled = false;
+      return;
+    }
+  });
+
+  const eyeOpen = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const eyeClosed = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><line x1="8" y1="16" x2="16" y2="8"/><line x1="8" y1="8" x2="16" y2="16"/></svg>';
+
+  function wireToggle(btnId, inputId) {
+    const btn = document.getElementById(btnId);
+    const inp = document.getElementById(inputId);
+    if (!btn || !inp) return;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      btn.innerHTML = show ? eyeOpen : eyeClosed;
+      btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      inp.focus();
+    });
+  }
+  wireToggle('pwToggle', 'password');
+  wireToggle('pwToggleConfirm', 'confirmPassword');
+})();
+
+document.querySelectorAll('#submitBtn, .pw-toggle').forEach(btn => {
+  btn.addEventListener('touchstart', (e) => { e.preventDefault(); }, { passive: false });
+  btn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    btn.click();
+  });
+});
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const vvh = window.visualViewport.height;
+    const wh = window.innerHeight;
+    if (vvh < wh * 0.8) {
+      document.body.style.paddingTop = '1vh';
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+        document.activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } else {
+      document.body.style.paddingTop = '';
+    }
+  });
+}
+</script>
+
+<script type="module" nonce="{{CSP_NONCE}}">
+try {
+  const tm = await import((window.__aurexLoginAppUrl || ((path) => path))('/static/js/theme.js'));
+  const pattern = window.__loginBgPattern;
+  if (pattern && tm.applyBgPattern) tm.applyBgPattern(pattern);
+} catch (e) {
+  console.error('[login-bg] failed:', e);
+}
+</script>
+</body>
+</html>
