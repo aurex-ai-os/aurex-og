@@ -4,6 +4,6 @@
     "url": "https://github.com/aurex-dev/aurex.git"
   },
   "devDependencies": {
-    "@antithesishq/bombadil": "^0.7.0"
+    "@antithesishq/bombadil": "^0.7.7"
   }
 }
